@@ -1,8 +1,12 @@
 'use server';
 
+import { PrismaClient } from '@prisma/client';
 import OpenAI from 'openai';
 
 const openai = new OpenAI(process.env.OPENAI_API_KEY);
+
+//* Create an instance of PrismaClient before using it
+const prisma = new PrismaClient();
 
 export const generateChatResponse = async (chatMessage) => {
 	try {
@@ -17,10 +21,6 @@ export const generateChatResponse = async (chatMessage) => {
 		console.log(error);
 		return null;
 	}
-};
-
-export const getExistingTours = async ({ city, country }) => {
-	return null;
 };
 
 export const generateTourResponse = async ({ city, country }) => {
@@ -61,6 +61,51 @@ If you can't find info on the exact ${city}, or ${city} does not exist, or its p
 	}
 };
 
+export const getExistingTours = async ({ city, country }) => {
+	return prisma.tour.findUnique({
+		where: {
+			city_country: {
+				city,
+				country,
+			},
+		},
+	});
+};
+
 export const createNewTour = async (tour) => {
-	return null;
+	return prisma.tour.create({
+		data: tour,
+	});
+};
+
+export const getAllTours = async (searchTerm) => {
+	if (!searchTerm) {
+		const tours = prisma.tour.findMany({
+			orderBy: {
+				city: 'asc',
+			},
+		});
+		return tours;
+	}
+
+	const tours = await prisma.tour.findMany({
+		where: {
+			OR: [
+				{
+					city: {
+						contains: searchTerm,
+						mode: 'insensitive',
+					},
+					country: {
+						contains: searchTerm,
+						mode: 'insensitive',
+					},
+				},
+			],
+		},
+		orderBy: {
+			city: 'asc',
+		},
+	});
+	return tours;
 };
