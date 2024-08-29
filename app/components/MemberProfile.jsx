@@ -5,10 +5,10 @@ import { UserProfile } from '@clerk/nextjs';
 
 
 
-// check https://clerk.com/docs/references/nextjs/auth
-// check https://clerk.com/docs/references/nextjs/current-user
+//* check https://clerk.com/docs/references/nextjs/auth
+//* check https://clerk.com/docs/references/nextjs/current-user
 
-
+// Here I'm using the Clerk SDK to get the current user
 const MemberProfile = async  () => {
     const user = await currentUser();
 	const {userId} = auth();

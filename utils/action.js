@@ -46,7 +46,7 @@ If you can't find info on the exact ${city}, or ${city} does not exist, or its p
 			],
 			model: 'gpt-4o-mini',
 			temperature: 0,
-			max_tokens: 1000,
+			max_tokens: 100,
 		});
 		const tourData = JSON.parse(response.choices[0].message.content);
 		if (!tourData.tour) {
@@ -120,4 +120,30 @@ export const getSingleTour = async (id)=> {
 			id,
 		},
 	})
+}
+
+export const generateTourImage = async ({city, country}) => {
+	try {
+		const tourImage =  await openai.images.generate({
+			prompt: `a panoramic view of ${city}, ${country}`,
+			n:1,
+			size:"256x256",
+		
+			
+		})
+		return tourImage?.data[0]?.url;
+	} catch (error) {
+		console.log(error);
+		return null;
+		
+	}
+}
+
+export const fetchUserTokensById= async(clerkId) => {
+	const result = await prisma.token.findUnique({
+		where: {
+			clerkId
+		}
+	})
+	return result?.tokens;
 }
