@@ -7,8 +7,9 @@ const AllToursPage = async () => {
 	const queryClient = new QueryClient();
 	// prefetchQuery is used to fetch the data before rendering the component
 	await queryClient.prefetchQuery({
-		queryKey: ['tours'],
-		queryFn: () => getAllTours,
+		// queryKey is used to identify the query once it is fetched and stored in the cache to make it easier to refetch the data
+		queryKey: ['tours', ''],
+		queryFn: () => getAllTours(),
 	});
 	return (
 		<HydrationBoundary state={dehydrate(queryClient)}>

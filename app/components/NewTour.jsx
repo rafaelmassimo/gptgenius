@@ -23,6 +23,7 @@ const NewTour = () => {
 			const newTour = await generateTourResponse(destination);
 			if (newTour) {
 				await createNewTour(newTour);
+				// this will invalidate the cache and refetch the data once the mutation is successful
 				queryClient.invalidateQueries({queryKey: ['tours']});
 				return newTour;
 			}

@@ -78,6 +78,7 @@ export const createNewTour = async (tour) => {
 	});
 };
 
+//If i'm not receiving any search term which is the city and country, I will return all the tours in the database
 export const getAllTours = async (searchTerm) => {
 	if (!searchTerm) {
 		const tours = prisma.tour.findMany({
@@ -96,9 +97,12 @@ export const getAllTours = async (searchTerm) => {
 						contains: searchTerm,
 						mode: 'insensitive',
 					},
+				},
+				{
 					country: {
 						contains: searchTerm,
 						mode: 'insensitive',
+
 					},
 				},
 			],
