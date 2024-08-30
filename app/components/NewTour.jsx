@@ -1,12 +1,29 @@
 'use client';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { getExistingTours, createNewTour, generateTourResponse } from '@/utils/action';
+import {
+	getExistingTours,
+	createNewTour,
+	generateTourResponse,
+	fetchUserTokensById,
+	subtractTokens,
+	getUserFromClerk,
+} from '@/utils/action';
 import TourInfo from './TourInfo';
 import { toast } from 'react-hot-toast';
 
 const NewTour = () => {
 	const queryClient = useQueryClient();
+	const [userId, setUserId] = useState('')
+
+	useEffect(() => {
+		async function fetchUserId() {
+			const id = await getUserFromClerk();
+			setUserId(id);
+		}
+
+		fetchUserId();
+	}, []);
 
 	const {
 		mutate,
@@ -16,18 +33,31 @@ const NewTour = () => {
 		mutationFn: async (destination) => {
 			//First check if the tour already exists in the database
 			const existingTour = await getExistingTours(destination);
-			if(existingTour) {
+			if (existingTour) {
 				return existingTour;
 			}
+
+			const currentTokens = await fetchUserTokensById(userId);
+			if (currentTokens < 300) {
+				toast.error('You need at least 300 tokens to generate a new tour');
+				return;
+			}
+
 			//if the tour does not exist in the database, generate a new tour
 			const newTour = await generateTourResponse(destination);
-			if (newTour) {
-				await createNewTour(newTour);
-				// this will invalidate the cache and refetch the data once the mutation is successful
-				queryClient.invalidateQueries({queryKey: ['tours']});
-				return newTour;
+console.log(newTour);
+
+			if (!newTour.tour) {
+				toast.error('No matching city found...');
+				return null;
 			}
-			toast.error('No matching city found...');
+
+			const response = await createNewTour(newTour);
+			// this will invalidate the cache and refetch the data once the mutation is successful
+			queryClient.invalidateQueries({ queryKey: ['tours'] });
+			const newTokens = await subtractTokens(userId, newTour.tokens);
+			toast.success(`${newTokens} tokens left`);
+			return newTour;
 		},
 	});
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import { UserButton } from '@clerk/nextjs';
 import { auth, currentUser } from '@clerk/nextjs/server'
-import { UserProfile } from '@clerk/nextjs';
+import { fetchOrGenerateTokens } from '@/utils/action';
 
 
 
@@ -12,6 +12,9 @@ import { UserProfile } from '@clerk/nextjs';
 const MemberProfile = async  () => {
     const user = await currentUser();
 	const {userId} = auth();
+	console.log(userId);
+	
+	await fetchOrGenerateTokens(userId);
 
     
 	return (

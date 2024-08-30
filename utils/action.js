@@ -1,7 +1,9 @@
 'use server';
 
 import { PrismaClient } from '@prisma/client';
+import { revalidatePath } from 'next/cache';
 import OpenAI from 'openai';
+import { auth, currentUser } from '@clerk/nextjs/server';
 
 const openai = new OpenAI(process.env.OPENAI_API_KEY);
 
@@ -46,14 +48,15 @@ If you can't find info on the exact ${city}, or ${city} does not exist, or its p
 			],
 			model: 'gpt-4o-mini',
 			temperature: 0,
-			max_tokens: 100,
+			max_tokens: 1000,
 		});
 		const tourData = JSON.parse(response.choices[0].message.content);
+
 		if (!tourData.tour) {
 			return null;
 		}
 
-		return tourData.tour;
+		return { tour:tourData.tour, tokens:response.usage.total_tokens };
 	} catch (error) {
 		console.log(error);
 
@@ -102,7 +105,6 @@ export const getAllTours = async (searchTerm) => {
 					country: {
 						contains: searchTerm,
 						mode: 'insensitive',
-
 					},
 				},
 			],
@@ -114,36 +116,72 @@ export const getAllTours = async (searchTerm) => {
 	return tours;
 };
 
-export const getSingleTour = async (id)=> {
+export const getSingleTour = async (id) => {
 	return prisma.tour.findUnique({
 		where: {
 			id,
 		},
-	})
-}
+	});
+};
 
-export const generateTourImage = async ({city, country}) => {
-	try {
-		const tourImage =  await openai.images.generate({
-			prompt: `a panoramic view of ${city}, ${country}`,
-			n:1,
-			size:"256x256",
-		
-			
-		})
-		return tourImage?.data[0]?.url;
-	} catch (error) {
-		console.log(error);
-		return null;
-		
-	}
-}
+// export const generateTourImage = async ({ city, country }) => {
+// 	try {
+// 		const tourImage = await openai.images.generate({
+// 			prompt: `a panoramic view of ${city}, ${country}`,
+// 			n: 1,
+// 			size: '256x256',
+// 		});
+// 		return tourImage?.data[0]?.url;
+// 	} catch (error) {
+// 		console.log(error);
+// 		return null;
+// 	}
+// };
 
-export const fetchUserTokensById= async(clerkId) => {
+export const fetchUserTokensById = async (clerkId) => {
 	const result = await prisma.token.findUnique({
 		where: {
-			clerkId
-		}
-	})
+			clerkId,
+		},
+	});
+
 	return result?.tokens;
-}
+};
+
+export const generateUserTokensForId = async (clerkId) => {
+	const result = await prisma.token.create({
+		data: {
+			clerkId,
+		},
+	});
+	return result?.tokens;
+};
+
+export const fetchOrGenerateTokens = async (clerkId) => {
+	const result = await fetchUserTokensById(clerkId);
+	if (result) {
+		return result.tokens;
+	}
+	return (await generateUserTokensForId(clerkId)).tokens;
+};
+
+export const subtractTokens = async (clerkId, tokens) => {
+	const result = await prisma.token.update({
+		where: {
+			clerkId,
+		},
+		data: {
+			tokens: {
+				decrement: tokens,
+			},
+		},
+	});
+	revalidatePath('/profile');
+	// Return the new token value
+	return result.tokens;
+};
+
+export const getUserFromClerk = async () => {
+	const { userId } = auth();
+	return userId;
+};
