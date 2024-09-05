@@ -56,6 +56,8 @@ If you can't find info on the exact ${city}, or ${city} does not exist, or its p
 			return null;
 		}
 
+		
+
 		return { tour:tourData.tour, tokens:response.usage.total_tokens };
 	} catch (error) {
 		console.log(error);
@@ -75,10 +77,18 @@ export const getExistingTours = async ({ city, country }) => {
 	});
 };
 
-export const createNewTour = async (tour) => {
-	return prisma.tour.create({
-		data: tour,
-	});
+export const createNewTour = async (tourData) => {
+    const tour = tourData.tour; // Extract the nested tour object
+    return prisma.tour.create({
+        data: {
+            city: tour.city,
+            country: tour.country,
+            title: tour.title,
+            description: tour.description,
+            stops: tour.stops,
+            tokens: tour.tokens
+        }
+    });
 };
 
 //If i'm not receiving any search term which is the city and country, I will return all the tours in the database
