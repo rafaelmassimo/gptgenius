@@ -18,6 +18,8 @@ const Chat = () => {
 			setMessages((prev) => [...prev, data]);
 		},
 	});
+	console.log(messages);
+	
 
 	const handleSubmit = (e) => {
 		e.preventDefault();

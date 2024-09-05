@@ -13,11 +13,16 @@ const prisma = new PrismaClient();
 export const generateChatResponse = async (chatMessage) => {
 	try {
 		const response = await openai.chat.completions.create({
+			//The first message is the role of the AI
+			//The content is to explain to the AI what is it about this conversation
+			//...chatMessage is the array of messages that the AI will use to generate a response you need to send them together all the time 
 			messages: [{ role: 'system', content: 'You are a helpful assistant.' }, ...chatMessage],
 			model: 'gpt-4o-mini',
 			temperature: 0,
 			max_tokens: 100,
 		});
+		console.log('this is tour data', response);
+
 		return response.choices[0].message;
 	} catch (error) {
 		console.log(error);
@@ -49,9 +54,10 @@ If you can't find info on the exact ${city}, or ${city} does not exist, or its p
 			model: 'gpt-4o-mini',
 			temperature: 0,
 			max_tokens: 1000,
+			temperature: 0,
 		});
 		const tourData = JSON.parse(response.choices[0].message.content);
-
+		
 		if (!tourData.tour) {
 			return null;
 		}

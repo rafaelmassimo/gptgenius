@@ -1,7 +1,7 @@
 import React from 'react';
 import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
-import ToursPage from '@/app/components/ToursPage';
-import { getAllTours } from '@/utils/action';
+import ToursPage from '../../components/ToursPage';
+import { getAllTours } from '../../../utils/action';
 
 const AllToursPage = async () => {
 	const queryClient = new QueryClient();
