@@ -8,13 +8,13 @@ import {
 	fetchUserTokensById,
 	subtractTokens,
 	getUserFromClerk,
-} from '@/utils/action';
+} from '../../utils/action';
 import TourInfo from './TourInfo';
 import { toast } from 'react-hot-toast';
 
 const NewTour = () => {
 	const queryClient = useQueryClient();
-	const [userId, setUserId] = useState('')
+	const [userId, setUserId] = useState('');
 
 	useEffect(() => {
 		async function fetchUserId() {
@@ -45,7 +45,7 @@ const NewTour = () => {
 
 			//if the tour does not exist in the database, generate a new tour
 			const newTour = await generateTourResponse(destination);
-console.log(newTour);
+			console.log(newTour);
 
 			if (!newTour.tour) {
 				toast.error('No matching city found...');
